@@ -33,10 +33,10 @@
 		},
 		"tags": {
 			"name": "punctuation.definition.tag",
-			"match": "\\[\\/?(\\w+)(([:|=])(\\w+))*\\]",
+			"match": "\\[\\/?(\\w+)((([:|=])(\\w+))*)\\]",
 			"captures": {
 				"1": {"name": "entity.name.tag.ttr"},
-				"4": {"name": "entity.other.attribute-name.ttr"}
+				"2": {"name": "entity.other.attribute-name.ttr"}
 			}
 		},
 		"glyphs": {
