@@ -36,7 +36,15 @@
 			"match": "\\[\\/?(\\w+)((([:|=])(\\w+))*)\\]",
 			"captures": {
 				"1": {"name": "entity.name.tag.ttr"},
-				"2": {"name": "entity.other.attribute-name.ttr"}
+				"2": {"patterns": [
+					{
+						"name": "punctuation.definition.tag",
+						"match": "[:|=](\\w+)",
+						"captures": {
+							"1": {"name": "entity.other.attribute-name.ttr"}
+						}
+					}
+				]}
 			}
 		},
 		"glyphs": {
