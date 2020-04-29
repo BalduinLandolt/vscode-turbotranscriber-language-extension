@@ -1,0 +1,92 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"name": "TurboTranscriber Raw Transcription",
+	"patterns": [
+		{
+			"include": "#keywords"
+		},
+		{
+			"include": "#comments"
+		},
+		{
+			"include": "#tags"
+		},
+		{
+			"include": "#glyphs"
+		},
+		{
+			"include": "#abbr"
+		},
+		{
+			"include": "#tag-names"
+		},
+		{
+			"include": "#tag-attributes"
+		}
+	],
+	"repository": {
+		"keywords": {
+			"patterns": [{
+				"name": "keyword.control.ttr",
+				"match": "\\b(if|while|for|return)\\b"
+			}]
+		},
+		"comments": {
+			"patterns": [
+				{"include": "#block-comment"},
+				{"include": "#line-comment"}
+			]
+		},
+		"block-comment": {
+			"name": "comment.block.ttr",
+			"begin": "\\/\\*",
+			"end": "\\*\\/"
+		},
+		"line-comment": {
+			"name": "comment.line.number-sign.ttr",
+			"match": "#.*"
+		},
+		"tags": {
+			"name": "punctuation.definition.tag",
+			"begin": "\\[",
+			"end": "\\]",
+			"patterns": [
+				{"include": "#tag-names"},
+				{"include": "#tag-attributes"}
+			]
+		},
+		"tag-names": {
+			"patterns": [{
+				"name":"entity.name.tag.ttr",
+				"match": "[a-zA-Z]+?"
+			}]
+		},
+		"tag-attributes": {
+			"name": "punctuation.definition.tag",
+			"match": "(([:|=])([a-zA-Z0-9]+))+?",
+			"captures": {
+				"3": {"name": "markup.deleted"}
+			}
+		},
+		"glyphs": {
+			"patterns": [{
+				"name":"constant.numeric.ttr",
+				"match": "{.*?}"
+			}]
+		},
+		"abbr": {
+			"patterns": [{
+				"name":"string.regexp.ttr",
+				"match": "\\(.*?\\)",
+				"captures": {
+					"0": {
+						"patterns":[{
+							"include": "#glyphs"
+							}]
+						}
+					}
+			}]
+		}
+	},
+	"scopeName": "text.turbotranscriber.raw"
+}

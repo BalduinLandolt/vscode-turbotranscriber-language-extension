@@ -1,0 +1,25 @@
+{
+    "name": "turbotranscriber",
+    "displayName": "TurboTranscriber",
+    "description": "Turbo Transcriptions of Medieval Manuscripts",
+    "version": "0.0.1",
+    "engines": {
+        "vscode": "^1.44.0"
+    },
+    "categories": [
+        "Programming Languages"
+    ],
+    "contributes": {
+        "languages": [{
+            "id": "ttr",
+            "aliases": ["TurboTranscriber Raw Transcription", "ttr"],
+            "extensions": [".ttr"],
+            "configuration": "./language-configuration.json"
+        }],
+        "grammars": [{
+            "language": "ttr",
+            "scopeName": "text.turbotranscriber.raw",
+            "path": "./syntaxes/ttr.tmLanguage.json"
+        }]
+    }
+}
