@@ -1,0 +1,17 @@
+{
+	"name": "lsp-client",
+	"displayName": "lsp-client",
+	"description": "TurboTranscriber LSP Client",
+	"author": "Balduin Landolt",
+	"version": "0.0.1",
+	"engines": {
+		"vscode": "^1.47.0"
+	},
+	"scripts": {},
+	"dependencies": {
+		"vscode-languageclient": "^5.2.1"
+	},
+	"devDependencies": {
+		"@types/vscode": "^1.47.0"
+	}
+}

@@ -3,23 +3,52 @@
     "displayName": "TurboTranscriber",
     "description": "Turbo Transcriptions of Medieval Manuscripts",
     "version": "0.0.1",
+    "license": "MIT",
     "engines": {
         "vscode": "^1.44.0"
     },
     "categories": [
         "Programming Languages"
     ],
+    "activationEvents": [
+        "onLanguage:ttr"
+    ],
+    "main": "./lsp-client/out/extension",
     "contributes": {
-        "languages": [{
-            "id": "ttr",
-            "aliases": ["TurboTranscriber Raw Transcription", "ttr"],
-            "extensions": [".ttr"],
-            "configuration": "./language-configuration.json"
-        }],
-        "grammars": [{
-            "language": "ttr",
-            "scopeName": "text.turbotranscriber.raw",
-            "path": "./syntaxes/ttr.tmLanguage.json"
-        }]
+        "languages": [
+            {
+                "id": "ttr",
+                "aliases": [
+                    "TurboTranscriber Raw Transcription",
+                    "ttr"
+                ],
+                "extensions": [
+                    ".ttr"
+                ],
+                "configuration": "./language-configuration.json"
+            }
+        ],
+        "grammars": [
+            {
+                "language": "ttr",
+                "scopeName": "text.turbotranscriber.raw",
+                "path": "./syntaxes/ttr.tmLanguage.json"
+            }
+        ]
+    },
+    "scripts": {
+        "vscode:prepublish": "npm run compile",
+        "compile": "tsc -b",
+        "watch": "tsc -b -w",
+        "postinstall": "cd lsp-client && npm install && cd ../server && npm install && cd ..",
+        "test": "sh ./scripts/e2e.sh"
+    },
+    "devDependencies": {
+        "@types/mocha": "^7.0.2",
+        "mocha": "^8.0.1",
+        "@types/node": "^12.12.0",
+        "eslint": "^6.4.0",
+        "@typescript-eslint/parser": "^2.3.0",
+        "typescript": "^3.9.4"
     }
 }
