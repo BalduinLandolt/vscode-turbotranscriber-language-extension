@@ -1,5 +1,5 @@
 /* --------------------------------------------------------------------------------------------
- * Copyright (c) Balduin Landolt. All rights reserved.
+ * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 
@@ -16,9 +16,6 @@ import {
 let client: LanguageClient;
 
 export function activate(context: ExtensionContext) {
-
-	console.log("Client: Starting...")
-
 	// The server is implemented in node
 	let serverModule = context.asAbsolutePath(
 		path.join('server', 'out', 'server.js')
@@ -50,18 +47,15 @@ export function activate(context: ExtensionContext) {
 
 	// Create the language client and start the client.
 	client = new LanguageClient(
-		'lsp-server',
-		'lsp-server',
+		'languageServerExample',
+		'Language Server Example',
 		serverOptions,
 		clientOptions
 	);
 
 	// Start the client. This will also launch the server
 	client.start();
-
-	console.log("Client: Started.")
 }
-
 
 export function deactivate(): Thenable<void> | undefined {
 	if (!client) {

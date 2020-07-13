@@ -1,3 +1,7 @@
+/* --------------------------------------------------------------------------------------------
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License. See License.txt in the project root for license information.
+ * ------------------------------------------------------------------------------------------ */
 import {
 	createConnection,
 	TextDocuments,
@@ -5,11 +9,11 @@ import {
 	DiagnosticSeverity,
 	ProposedFeatures,
 	InitializeParams,
-	TextDocumentSyncKind,
 	DidChangeConfigurationNotification,
 	CompletionItem,
 	CompletionItemKind,
 	TextDocumentPositionParams,
+	TextDocumentSyncKind,
 	InitializeResult
 } from 'vscode-languageserver';
 
@@ -17,12 +21,12 @@ import {
 	TextDocument
 } from 'vscode-languageserver-textdocument';
 
-// Create a connection for the server. The connection uses Node's IPC as a transport.
+// Create a connection for the server, using Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
 let connection = createConnection(ProposedFeatures.all);
 
+// Create a simple text document manager. 
 let documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
-
 
 let hasConfigurationCapability: boolean = false;
 let hasWorkspaceFolderCapability: boolean = false;
@@ -137,7 +141,7 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
 	// The validator creates diagnostics for all uppercase words length 2 and more
 	let text = textDocument.getText();
 	let pattern = /\b[A-Z]{2,}\b/g;
-	let m: RegExpExecArray;
+	let m: RegExpExecArray | null;
 
 	let problems = 0;
 	let diagnostics: Diagnostic[] = [];
@@ -173,13 +177,13 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
 		diagnostics.push(diagnostic);
 	}
 
-	// Send the computed diagnostics to VS Code.
+	// Send the computed diagnostics to VSCode.
 	connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
 }
 
 connection.onDidChangeWatchedFiles(_change => {
-	// Monitored files have change in VS Code
-	connection.console.log('We received a file change event');
+	// Monitored files have change in VSCode
+	connection.console.log('We received an file change event');
 });
 
 // This handler provides the initial list of the completion items.
@@ -217,26 +221,6 @@ connection.onCompletionResolve(
 		return item;
 	}
 );
-
-/*
-connection.onDidOpenTextDocument((params) => {
-	// A text document got opened in VS Code.
-	// params.uri uniquely identifies the document. For documents store on disk this is a file URI.
-	// params.text the initial full content of the document.
-	connection.console.log(`${params.textDocument.uri} opened.`);
-});
-connection.onDidChangeTextDocument((params) => {
-	// The content of a text document did change in VS Code.
-	// params.uri uniquely identifies the document.
-	// params.contentChanges describe the content changes to the document.
-	connection.console.log(`${params.textDocument.uri} changed: ${JSON.stringify(params.contentChanges)}`);
-});
-connection.onDidCloseTextDocument((params) => {
-	// A text document got closed in VS Code.
-	// params.uri uniquely identifies the document.
-	connection.console.log(`${params.textDocument.uri} closed.`);
-});
-*/
 
 // Make the text document manager listen on the connection
 // for open, change and close text document events

@@ -17,7 +17,7 @@
 		"src"
 	],
 	"references": [
-		{"path": "./lsp-client"},
+		{"path": "./client"},
 		{"path": "./server"}
 	]
 }
