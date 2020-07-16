@@ -21,8 +21,8 @@ import {
 	TextDocument
 } from 'vscode-languageserver-textdocument';
 
-import { exists, existsSync } from "fs";
-import { resolve } from "path";
+import { exists } from "fs";
+import { fileURLToPath } from "url";
 
 
 // Create a connection for the server, using Node's IPC as a transport.
@@ -160,18 +160,10 @@ async function transformTextDocument(textDocument: TextDocument): Promise<void> 
 	let unresolvedXmlDocument = (await settings)?.xmlFilePath;
 	let xmlDocument: string = unresolvedXmlDocument!; // TODO: do I need to do something with it?
 
-	let docPath = resolve(textDocument.uri)
-
-	console.log(`Text Document: ${textDocument.uri}`);
-	console.log(`Text Document exists: ${existsSync(textDocument.uri)}`);
-	console.log(`Text Doc Path: ${docPath}`);
-	console.log(`Text Doc Path exists: ${existsSync(docPath)}`);
-	console.log(`XML Document: ${xmlDocument}`);
-	console.log(`Resolved: ${resolve(xmlDocument)}`);
-	console.log(`Exists: ${existsSync(xmlDocument)}`);
-	
-	
-	
+	let docURI = textDocument.uri;
+	let path = fileURLToPath(docURI);
+	console.log(`Text Document: ${path}`);
+	exists(path, (exists) => {console.log(`Text Document exists: ${exists}`)})
 }
 
 async function validateTextDocument(textDocument: TextDocument): Promise<void> {
