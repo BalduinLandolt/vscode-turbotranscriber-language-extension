@@ -160,7 +160,12 @@ async function transformTextDocument(textDocument: TextDocument): Promise<void> 
 	let unresolvedXmlDocument = (await settings)?.xmlFilePath;
 	let xmlDocument: string = unresolvedXmlDocument!; // TODO: do I need to do something with it?
 
+	let docPath = resolve(textDocument.uri)
+
 	console.log(`Text Document: ${textDocument.uri}`);
+	console.log(`Text Document exists: ${existsSync(textDocument.uri)}`);
+	console.log(`Text Doc Path: ${docPath}`);
+	console.log(`Text Doc Path exists: ${existsSync(docPath)}`);
 	console.log(`XML Document: ${xmlDocument}`);
 	console.log(`Resolved: ${resolve(xmlDocument)}`);
 	console.log(`Exists: ${existsSync(xmlDocument)}`);
