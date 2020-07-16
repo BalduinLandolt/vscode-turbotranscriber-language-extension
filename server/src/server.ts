@@ -1,5 +1,5 @@
 /* --------------------------------------------------------------------------------------------
- * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Copyright (c) Balduin Landolt. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 import {
@@ -21,6 +21,10 @@ import {
 	TextDocument
 } from 'vscode-languageserver-textdocument';
 
+import { exists, existsSync } from "fs";
+import { resolve } from "path";
+
+
 // Create a connection for the server, using Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
 let connection = createConnection(ProposedFeatures.all);
@@ -32,8 +36,13 @@ let hasConfigurationCapability: boolean = false;
 let hasWorkspaceFolderCapability: boolean = false;
 let hasDiagnosticRelatedInformationCapability: boolean = false;
 
+
 connection.onInitialize((params: InitializeParams) => {
+	console.log('Server initializing...');
+
 	let capabilities = params.capabilities;
+
+	// TODO: look into capabilities and implement that actually correct.
 
 	// Does the client support the `workspace/configuration` request?
 	// If not, we fall back using global settings.
@@ -80,27 +89,31 @@ connection.onInitialized(() => {
 	}
 });
 
-// The example settings
-interface ExampleSettings {
-	maxNumberOfProblems: number;
+/**
+ * TurboTranscriber Settings
+ * 
+ * - xmlFilePath: String
+ */
+interface TurboTranscriber {
+	xmlFilePath: string;
 }
 
 // The global settings, used when the `workspace/configuration` request is not supported by the client.
 // Please note that this is not the case when using this server with the client provided in this example
 // but could happen with other clients.
-const defaultSettings: ExampleSettings = { maxNumberOfProblems: 1000 };
-let globalSettings: ExampleSettings = defaultSettings;
+const defaultSettings: TurboTranscriber = { xmlFilePath: "ttr-xml.xml" };
+let globalSettings: TurboTranscriber = defaultSettings;
 
 // Cache the settings of all open documents
-let documentSettings: Map<string, Thenable<ExampleSettings>> = new Map();
+let documentSettings: Map<string, Thenable<TurboTranscriber>> = new Map();
 
 connection.onDidChangeConfiguration(change => {
 	if (hasConfigurationCapability) {
 		// Reset all cached document settings
 		documentSettings.clear();
 	} else {
-		globalSettings = <ExampleSettings>(
-			(change.settings.languageServerExample || defaultSettings)
+		globalSettings = <TurboTranscriber>(
+			(change.settings.turboTranscriber || defaultSettings)  // TODO: should not be example anymore
 		);
 	}
 
@@ -108,7 +121,7 @@ connection.onDidChangeConfiguration(change => {
 	documents.all().forEach(validateTextDocument);
 });
 
-function getDocumentSettings(resource: string): Thenable<ExampleSettings> {
+function getDocumentSettings(resource: string): Thenable<TurboTranscriber> {
 	if (!hasConfigurationCapability) {
 		return Promise.resolve(globalSettings);
 	}
@@ -116,9 +129,11 @@ function getDocumentSettings(resource: string): Thenable<ExampleSettings> {
 	if (!result) {
 		result = connection.workspace.getConfiguration({
 			scopeUri: resource,
-			section: 'languageServerExample'
+			section: 'turboTranscriber'  // TODO: should not be example anymore
 		});
 		documentSettings.set(resource, result);
+		console.log(documentSettings.get(resource));
+		
 	}
 	return result;
 }
@@ -132,7 +147,27 @@ documents.onDidClose(e => {
 // when the text document first opened or when its content has changed.
 documents.onDidChangeContent(change => {
 	validateTextDocument(change.document);
+	transformTextDocument(change.document);
 });
+
+async function transformTextDocument(textDocument: TextDocument): Promise<void> {
+	// TODO: implement
+
+	let settingsPromise = documentSettings.get(textDocument.uri)
+	let settings = settingsPromise?.then((res) => {
+		return res;
+	});
+	let unresolvedXmlDocument = (await settings)?.xmlFilePath;
+	let xmlDocument: string = unresolvedXmlDocument!; // TODO: do I need to do something with it?
+
+	console.log(`Text Document: ${textDocument.uri}`);
+	console.log(`XML Document: ${xmlDocument}`);
+	console.log(`Resolved: ${resolve(xmlDocument)}`);
+	console.log(`Exists: ${existsSync(xmlDocument)}`);
+	
+	
+	
+}
 
 async function validateTextDocument(textDocument: TextDocument): Promise<void> {
 	// In this simple example we get the settings for every validate run.
@@ -145,7 +180,7 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
 
 	let problems = 0;
 	let diagnostics: Diagnostic[] = [];
-	while ((m = pattern.exec(text)) && problems < settings.maxNumberOfProblems) {
+	while (m = pattern.exec(text)) {
 		problems++;
 		let diagnostic: Diagnostic = {
 			severity: DiagnosticSeverity.Warning,

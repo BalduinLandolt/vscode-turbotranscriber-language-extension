@@ -16,6 +16,8 @@ import {
 let client: LanguageClient;
 
 export function activate(context: ExtensionContext) {
+	console.log('Client activating...');
+
 	// The server is implemented in node
 	let serverModule = context.asAbsolutePath(
 		path.join('server', 'out', 'server.js')
@@ -47,8 +49,8 @@ export function activate(context: ExtensionContext) {
 
 	// Create the language client and start the client.
 	client = new LanguageClient(
-		'languageServerExample',
-		'Language Server Example',
+		'ttr-lsp-server',
+		'TurboTranscriber Language Server',
 		serverOptions,
 		clientOptions
 	);
