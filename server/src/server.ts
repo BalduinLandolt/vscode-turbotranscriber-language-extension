@@ -21,8 +21,8 @@ import {
 	TextDocument
 } from 'vscode-languageserver-textdocument';
 
-import { exists } from "fs";
-import { parse, sep, normalize } from "path";
+import { exists, existsSync, mkdirSync, writeFileSync } from "fs";
+import { parse, sep, normalize, dirname } from "path";
 import { fileURLToPath } from "url";
 
 
@@ -75,6 +75,7 @@ connection.onInitialize((params: InitializeParams) => {
 			}
 		};
 	}
+	console.log('Server initializing finished.');
 	return result;
 });
 
@@ -88,6 +89,8 @@ connection.onInitialized(() => {
 			connection.console.log('Workspace folder change event received.');
 		});
 	}
+	documents.all().forEach(getDocumentSettings);  // TODO: ?
+	console.log('Server initialized.');
 });
 
 /**
@@ -190,6 +193,24 @@ documents.onDidChangeContent(change => {
 });
 
 async function transformTextDocument(textDocument: TextDocument): Promise<void> {
+	let xmlPath = documentServerSettings.get(textDocument.uri)?.xmlFilePath;
+	if (!xmlPath){
+		//throw new Error("No XML File defined. Cannot transform document.");
+		console.warn('No XML File!')
+		return;
+	}
+	let dir = dirname(xmlPath)
+	if (!existsSync(dir)){
+		mkdirSync(dir, {recursive: true});
+	}
+	// if (!existsSync(xmlPath)){
+	// 	mkdirSync(xmlPath);
+	// 	console.log(`Created File: ${xmlPath}`);
+	// }
+	console.log(`Transformation requested for: ${xmlPath}`);
+
+	writeFileSync(xmlPath, 'Blah', {flag: 'w'});
+
 	// // TODO: implement
 
 	// let settingsPromise = documentSettings.get(textDocument.uri)
