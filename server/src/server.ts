@@ -89,7 +89,6 @@ connection.onInitialized(() => {
 			connection.console.log('Workspace folder change event received.');
 		});
 	}
-	documents.all().forEach(getDocumentSettings);  // TODO: ?
 	console.log('Server initialized.');
 });
 
@@ -180,6 +179,10 @@ async function makePath(uri: string) {
 
 // 	}
 
+documents.onDidOpen(e => {
+	documents.all().forEach(getDocumentSettings);
+});
+
 // Only keep settings for open documents
 documents.onDidClose(e => {
 	documentClientSettings.delete(e.document.uri);
@@ -209,7 +212,10 @@ async function transformTextDocument(textDocument: TextDocument): Promise<void> 
 	// }
 	console.log(`Transformation requested for: ${xmlPath}`);
 
-	writeFileSync(xmlPath, 'Blah', {flag: 'w'});
+	transformText(xmlPath, textDocument, () => {
+		console.log('Done transforming.');
+	})
+
 
 	// // TODO: implement
 
@@ -224,6 +230,12 @@ async function transformTextDocument(textDocument: TextDocument): Promise<void> 
 	// let path = fileURLToPath(docURI);
 	// console.log(`Text Document: ${path}`);
 	// exists(path, (exists) => {console.log(`Text Document exists: ${exists}`)})
+}
+
+function transformText(path:string, textDoc:TextDocument, callback: ()=> void) {
+	let res = 'Blubb';
+	writeFileSync(path, res, {flag: 'w'});
+	callback();
 }
 
 async function validateTextDocument(textDocument: TextDocument): Promise<void> {
