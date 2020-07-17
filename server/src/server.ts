@@ -22,6 +22,7 @@ import {
 } from 'vscode-languageserver-textdocument';
 
 import { exists } from "fs";
+import { parse, sep, normalize } from "path";
 import { fileURLToPath } from "url";
 
 
@@ -92,55 +93,93 @@ connection.onInitialized(() => {
 /**
  * TurboTranscriber Settings
  * 
- * - xmlFilePath: String
+ * - xmlFilePath: string
+ * - xmlFilePathIsAbsolute: boolean
  */
-interface TurboTranscriber {
+interface ClientSettings {
+	xmlFilePath: string;
+	xmlFilePathIsAbsolute: boolean;
+}
+
+interface ServerSettings {
 	xmlFilePath: string;
 }
 
 // The global settings, used when the `workspace/configuration` request is not supported by the client.
 // Please note that this is not the case when using this server with the client provided in this example
 // but could happen with other clients.
-const defaultSettings: TurboTranscriber = { xmlFilePath: "ttr-xml.xml" };
-let globalSettings: TurboTranscriber = defaultSettings;
+const defaultSettings: ClientSettings = {
+	xmlFilePath: "ttr-xml.xml",
+	xmlFilePathIsAbsolute: false
+};
+let globalSettings: ClientSettings = defaultSettings;
 
 // Cache the settings of all open documents
-let documentSettings: Map<string, Thenable<TurboTranscriber>> = new Map();
+let documentClientSettings: Map<string, Thenable<ClientSettings>> = new Map();
+let documentServerSettings: Map<string, ServerSettings> = new Map();
 
 connection.onDidChangeConfiguration(change => {
 	if (hasConfigurationCapability) {
 		// Reset all cached document settings
-		documentSettings.clear();
+		documentClientSettings.clear();
 	} else {
-		globalSettings = <TurboTranscriber>(
-			(change.settings.turboTranscriber || defaultSettings)  // TODO: should not be example anymore
+		globalSettings = <ClientSettings>(
+			(change.settings.turboTranscriber || defaultSettings)
 		);
 	}
 
 	// Revalidate all open text documents
+	documents.all().forEach(getDocumentSettings);
 	documents.all().forEach(validateTextDocument);
 });
 
-function getDocumentSettings(resource: string): Thenable<TurboTranscriber> {
-	if (!hasConfigurationCapability) {
-		return Promise.resolve(globalSettings);
-	}
-	let result = documentSettings.get(resource);
+function getDocumentSettings(textDocument: TextDocument): Thenable<ClientSettings> {
+	let resource = textDocument.uri;
+	let result = documentClientSettings.get(resource);
 	if (!result) {
 		result = connection.workspace.getConfiguration({
 			scopeUri: resource,
-			section: 'turboTranscriber'  // TODO: should not be example anymore
+			section: 'turboTranscriber'
 		});
-		documentSettings.set(resource, result);
-		console.log(documentSettings.get(resource));
-		
+		documentClientSettings.set(resource, result);
 	}
+	result.then(() => makePath(resource))
 	return result;
 }
 
+async function makePath(uri: string) {
+	let clSetting = await documentClientSettings.get(uri);
+	let res: string;
+	if (clSetting?.xmlFilePathIsAbsolute) {
+		res = clSetting.xmlFilePath;
+	} else {
+		let ttrPath = fileURLToPath(uri);
+		let parsed = parse(ttrPath);
+
+		let path: string = clSetting!.xmlFilePath.replace('${fileBasenameNoExtension}', parsed.name)
+			.replace('${fileDirname}', parsed.dir);
+		res = path;
+	}
+	res = normalize(res);
+	documentServerSettings.set(uri, { xmlFilePath: res});
+	console.log(`Docpath: ${res}\nURI: ${uri}\n`);
+	
+}
+
+// function makePath(ttp: Promise<ClientSettings>, uri: string): string {
+// 	let tt = await ttp;
+// 	if (tt.xmlFilePathIsAbsolute) {
+// 		return tt.xmlFilePath;
+// 	}
+// 	let ttrPath = fileURLToPath(uri);
+// 	let parsed = parse(ttrPath);
+// 	return "";
+
+// 	}
+
 // Only keep settings for open documents
 documents.onDidClose(e => {
-	documentSettings.delete(e.document.uri);
+	documentClientSettings.delete(e.document.uri);
 });
 
 // The content of a text document has changed. This event is emitted
@@ -151,24 +190,22 @@ documents.onDidChangeContent(change => {
 });
 
 async function transformTextDocument(textDocument: TextDocument): Promise<void> {
-	// TODO: implement
+	// // TODO: implement
 
-	let settingsPromise = documentSettings.get(textDocument.uri)
-	let settings = settingsPromise?.then((res) => {
-		return res;
-	});
-	let unresolvedXmlDocument = (await settings)?.xmlFilePath;
-	let xmlDocument: string = unresolvedXmlDocument!; // TODO: do I need to do something with it?
+	// let settingsPromise = documentSettings.get(textDocument.uri)
+	// let settings = settingsPromise?.then((res) => {
+	// 	return res;
+	// });
+	// let unresolvedXmlDocument = (await settings)?.xmlFilePath;
+	// let xmlDocument: string = unresolvedXmlDocument!; // TODO: do I need to do something with it?
 
-	let docURI = textDocument.uri;
-	let path = fileURLToPath(docURI);
-	console.log(`Text Document: ${path}`);
-	exists(path, (exists) => {console.log(`Text Document exists: ${exists}`)})
+	// let docURI = textDocument.uri;
+	// let path = fileURLToPath(docURI);
+	// console.log(`Text Document: ${path}`);
+	// exists(path, (exists) => {console.log(`Text Document exists: ${exists}`)})
 }
 
 async function validateTextDocument(textDocument: TextDocument): Promise<void> {
-	// In this simple example we get the settings for every validate run.
-	let settings = await getDocumentSettings(textDocument.uri);
 
 	// The validator creates diagnostics for all uppercase words length 2 and more
 	let text = textDocument.getText();

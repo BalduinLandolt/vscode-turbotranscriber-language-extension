@@ -31,6 +31,12 @@
                     "default": "${fileDirname}/xml/${fileBasenameNoExtension}.xml",
                     "description": "Path to XML file."
                 },
+                "turboTranscriber.xmlFilePathIsAbsolute":{
+                    "scope": "resource",
+                    "type":"boolean",
+                    "default": false,
+                    "description": "Indicates if path is absolute."
+                },
                 "turboTranscriber.languageServer.trace.server": {
                     "scope": "window",
                     "type": "string",
