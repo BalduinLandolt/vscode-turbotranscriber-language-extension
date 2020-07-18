@@ -37,7 +37,7 @@
                     "default": false,
                     "description": "Indicates if path is absolute."
                 },
-                "turboTranscriber.languageServer.trace.server": {
+                "ttr.trace.server": {
                     "scope": "window",
                     "type": "string",
                     "enum": [
@@ -45,7 +45,7 @@
                         "messages",
                         "verbose"
                     ],
-                    "default": "messages",
+                    "default": "off",
                     "description": "Traces the communication between VS Code and the language server."
                 }
             }

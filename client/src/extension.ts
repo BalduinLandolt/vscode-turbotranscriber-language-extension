@@ -13,7 +13,8 @@ import {
 	TransportKind
 } from 'vscode-languageclient';
 
-import { existsSync } from "fs";
+import { existsSync, readdirSync } from "fs";
+import { homedir } from "os";
 
 let client: LanguageClient;
 
@@ -44,6 +45,15 @@ export function activate(context: ExtensionContext) {
 		// TODO: ensure this is dynamic
 		let launcherPath: string = path.join(__dirname, '..', '..', 'server', serverLauncher);
 		console.log(launcherPath);
+
+		// Use ~/.ttr-lsp/*.jar if any is found
+		let serverDirHome: string = path.join(homedir(),'.ttr-lsp');
+		let fileList = readdirSync(serverDirHome).filter((f) => path.extname(f)==='.jar')
+		if (fileList.length > 0){
+			launcherPath = path.join(serverDirHome, fileList[0])
+			console.log(`Found Language Server in ~/.ttr-lsp \n-> Using: ${launcherPath}`);
+			
+		}
 		
 
 		// TODO: do I need this?
