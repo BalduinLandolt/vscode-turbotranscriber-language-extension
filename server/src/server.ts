@@ -11,7 +11,6 @@ import {
 	InitializeParams,
 	DidChangeConfigurationNotification,
 	CompletionItem,
-	CompletionItemKind,
 	TextDocumentPositionParams,
 	TextDocumentSyncKind,
 	InitializeResult
@@ -24,17 +23,23 @@ import {
 import { exists } from "fs";
 import { fileURLToPath } from "url";
 
+import { CompletionProvider } from "./completionProvider";
+import { Tokenizer } from './tokenizer';
+
 
 // Create a connection for the server, using Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
 let connection = createConnection(ProposedFeatures.all);
 
-// Create a simple text document manager. 
-let documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
-
 let hasConfigurationCapability: boolean = false;
 let hasWorkspaceFolderCapability: boolean = false;
 let hasDiagnosticRelatedInformationCapability: boolean = false;
+
+// Create a simple text document manager. 
+let documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
+
+let tokenizer = new Tokenizer(documents);
+let completionProvider = new CompletionProvider(tokenizer);
 
 
 connection.onInitialize((params: InitializeParams) => {
@@ -108,6 +113,8 @@ let globalSettings: TurboTranscriber = defaultSettings;
 let documentSettings: Map<string, Thenable<TurboTranscriber>> = new Map();
 
 connection.onDidChangeConfiguration(change => {
+	console.log("Something changed in settings!");
+	console.log(`Configuration Capabilities: ${hasConfigurationCapability}`)
 	if (hasConfigurationCapability) {
 		// Reset all cached document settings
 		documentSettings.clear();
@@ -146,8 +153,9 @@ documents.onDidClose(e => {
 // The content of a text document has changed. This event is emitted
 // when the text document first opened or when its content has changed.
 documents.onDidChangeContent(change => {
-	validateTextDocument(change.document);
-	transformTextDocument(change.document);
+	tokenizer.tokenizeDocument(change.document)
+	//validateTextDocument(change.document);
+	// transformTextDocument(change.document);
 });
 
 async function transformTextDocument(textDocument: TextDocument): Promise<void> {
@@ -218,45 +226,17 @@ connection.onDidChangeWatchedFiles(_change => {
 	connection.console.log('We received an file change event');
 });
 
-// This handler provides the initial list of the completion items.
 connection.onCompletion(
 	(_textDocumentPosition: TextDocumentPositionParams): CompletionItem[] => {
-		// The pass parameter contains the position of the text document in
-		// which code complete got requested. For the example we ignore this
-		// info and always provide the same completion items.
-		return [
-			{
-				label: 'TypeScript',
-				kind: CompletionItemKind.Text,
-				data: 1
-			},
-			{
-				label: 'JavaScript',
-				kind: CompletionItemKind.Text,
-				data: 2
-			}
-		];
+		return completionProvider.getCompletions(_textDocumentPosition.textDocument, _textDocumentPosition.position);
 	}
 );
 
-// This handler resolves additional information for the item selected in
-// the completion list.
 connection.onCompletionResolve(
 	(item: CompletionItem): CompletionItem => {
-		if (item.data === 1) {
-			item.detail = 'TypeScript details';
-			item.documentation = 'TypeScript documentation';
-		} else if (item.data === 2) {
-			item.detail = 'JavaScript details';
-			item.documentation = 'JavaScript documentation';
-		}
-		return item;
+		return completionProvider.resolveCompletion(item);
 	}
 );
 
-// Make the text document manager listen on the connection
-// for open, change and close text document events
 documents.listen(connection);
-
-// Listen on the connection
 connection.listen();
